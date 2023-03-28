@@ -5,6 +5,8 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 abstract contract Timely{
     function freeMint(uint256 tokenId) public virtual;
@@ -13,6 +15,7 @@ abstract contract Timely{
 }
 
 contract TimelyErc20Extends is Ownable,IERC721Receiver{
+    using SafeERC20 for IERC20;
 
     address timelyContractAddress;
     address signatureAddress;
@@ -41,8 +44,10 @@ contract TimelyErc20Extends is Ownable,IERC721Receiver{
         require(verify(_ethSignedMessageHash, _signature) == signatureAddress, "Invalid signature");
 
         //Pay
-        ERC20 erc20 = ERC20(erc20Address);
-        erc20.transferFrom(msg.sender, address(this), payAmout);
+        // ERC20 erc20 = ERC20(erc20Address);
+        // erc20.transferFrom(msg.sender, address(this), payAmout);
+        IERC20 token = IERC20(erc20Address);
+        token.safeTransferFrom(msg.sender, address(this), payAmout);
 
         //mint nft
         Timely timely = Timely(timelyContractAddress);
